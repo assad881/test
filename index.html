@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>متجر رواج | منتجات ذكية</title>
+  <meta name="description" content="متجر إلكتروني لمنتجات ذكية مختارة مع توصيل لدول الخليج والدفع عند الاستلام.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="topbar" id="topbar"></div>
+
+  <header class="header">
+    <div class="container header-inner">
+      <a class="logo" href="#"><span class="logo-mark">ر</span><span id="storeName"></span></a>
+      <div class="search">
+        <input id="search" type="search" placeholder="ابحث عن منتج…" aria-label="بحث">
+      </div>
+      <button class="cart-btn" id="openCart" aria-label="السلة">
+        🛒 <span class="cart-count" id="cartCount">0</span>
+      </button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container hero-inner">
+      <div>
+        <h1>منتجات ذكية<br><span>بأسعار تناسبك</span></h1>
+        <p id="tagline"></p>
+        <a href="#shop" class="btn btn-primary">تسوّق الآن</a>
+      </div>
+      <ul class="trust">
+        <li>🚚 توصيل خلال 7–12 يوم</li>
+        <li>💵 الدفع عند الاستلام</li>
+        <li>↩️ استرجاع خلال 14 يوم</li>
+        <li>💬 دعم عبر واتساب</li>
+      </ul>
+    </div>
+  </section>
+
+  <main class="container" id="shop">
+    <nav class="cats" id="cats"></nav>
+    <div class="grid" id="grid"></div>
+    <p class="empty" id="empty" hidden>لا توجد منتجات مطابقة.</p>
+  </main>
+
+  <section class="container faq">
+    <h2>أسئلة شائعة</h2>
+    <details><summary>كم تستغرق مدة التوصيل؟</summary><p>من 7 إلى 12 يوم عمل لجميع ولايات عُمان ودول الخليج، ونرسل لك رقم التتبع عبر واتساب.</p></details>
+    <details><summary>هل يمكنني الدفع عند الاستلام؟</summary><p>نعم، الدفع عند الاستلام متاح برسوم رمزية.</p></details>
+    <details><summary>ماذا لو وصل المنتج تالفاً؟</summary><p>راسلنا بصورة المنتج خلال 48 ساعة من الاستلام ونرسل بديلاً أو نعيد المبلغ كاملاً.</p></details>
+  </section>
+
+  <footer class="footer">
+    <div class="container">© <span id="year"></span> <span class="store-name"></span> — جميع الحقوق محفوظة</div>
+  </footer>
+
+  <!-- نافذة المنتج -->
+  <div class="modal" id="productModal" hidden>
+    <div class="modal-box">
+      <button class="close" data-close aria-label="إغلاق">✕</button>
+      <div id="productBody"></div>
+    </div>
+  </div>
+
+  <!-- السلة -->
+  <aside class="drawer" id="cart" hidden>
+    <div class="drawer-box">
+      <div class="drawer-head">
+        <h3>سلة المشتريات</h3>
+        <button class="close" data-close aria-label="إغلاق">✕</button>
+      </div>
+      <div id="cartItems" class="cart-items"></div>
+      <div class="cart-summary" id="cartSummary"></div>
+      <form id="checkout" class="checkout" hidden>
+        <h4>بيانات التوصيل</h4>
+        <input name="name" required placeholder="الاسم الكامل">
+        <input name="phone" required type="tel" placeholder="رقم الجوال">
+        <select name="country" required>
+          <option>عُمان</option><option>الإمارات</option><option>السعودية</option>
+          <option>قطر</option><option>الكويت</option><option>البحرين</option>
+        </select>
+        <input name="city" required placeholder="المدينة / الولاية">
+        <input name="address" required placeholder="العنوان التفصيلي">
+        <label class="radio"><input type="radio" name="pay" value="cod" checked> الدفع عند الاستلام</label>
+        <label class="radio"><input type="radio" name="pay" value="transfer"> تحويل بنكي</label>
+        <button class="btn btn-primary btn-block" type="submit">إرسال الطلب عبر واتساب ✅</button>
+      </form>
+    </div>
+  </aside>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="js/products.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
