@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>حاسبة أرباح الدروبشيبنغ</title>
+  <meta name="robots" content="noindex">
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .calc { display: grid; grid-template-columns: 340px 1fr; gap: 24px; padding: 32px 16px; }
+    .panel { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; }
+    .panel label { display: block; font-size: 14px; color: var(--muted); margin-top: 10px; }
+    .panel input { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { padding: 10px 8px; border-bottom: 1px solid var(--border); text-align: right; }
+    th { background: var(--bg); position: sticky; top: 0; }
+    .neg { color: var(--danger); font-weight: 700; }
+    .pos { color: var(--primary); font-weight: 700; }
+    .tbl-wrap { overflow-x: auto; }
+    .note { font-size: 13px; color: var(--muted); margin-top: 12px; }
+    @media (max-width: 860px) { .calc { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header class="header"><div class="container header-inner">
+    <a class="logo" href="index.html"><span class="logo-mark">ر</span>حاسبة الأرباح</a>
+  </div></header>
+
+  <main class="container calc">
+    <section class="panel">
+      <h3>افتراضات التكاليف</h3>
+      <label>تكلفة الإعلان لكل طلب (CPA) <input id="cpa" type="number" step="0.1" value="2.5"></label>
+      <label>عمولة بوابة الدفع % <input id="fee" type="number" step="0.1" value="2.9"></label>
+      <label>نسبة الطلبات المرفوضة/المرتجعة (COD) % <input id="rto" type="number" step="1" value="15"></label>
+      <label>تكلفة الشحن المرتجع للطلب الواحد <input id="rtoCost" type="number" step="0.1" value="1.5"></label>
+      <label>هامش الربح الصافي المستهدف % <input id="target" type="number" step="1" value="25"></label>
+      <p class="note">
+        الربح الصافي المتوقع للطلب = (1 − نسبة الرفض) × (السعر − التكلفة − العمولة) − CPA − نسبة الرفض × تكلفة المرتجع.
+        <br>السعر المقترح هو أقل سعر يحقق الهامش المستهدف.
+      </p>
+    </section>
+
+    <section class="panel tbl-wrap">
+      <h3>تحليل المنتجات</h3>
+      <table>
+        <thead><tr>
+          <th>المنتج</th><th>التكلفة</th><th>السعر</th><th>الربح الإجمالي</th>
+          <th>صافي الربح المتوقع/طلب</th><th>الهامش الصافي</th><th>ROAS للتعادل</th><th>السعر المقترح</th>
+        </tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </section>
+  </main>
+
+  <script src="js/products.js"></script>
+  <script>
+    const ids = ["cpa", "fee", "rto", "rtoCost", "target"];
+    const v = (id) => parseFloat(document.getElementById(id).value) || 0;
+    const f = (n) => n.toFixed(2);
+
+    function netProfit(price, cost, a) {
+      const accepted = 1 - a.rto;
+      return accepted * (price - cost - price * a.fee) - a.cpa - a.rto * a.rtoCost;
+    }
+
+    function render() {
+      const a = { cpa: v("cpa"), fee: v("fee") / 100, rto: v("rto") / 100, rtoCost: v("rtoCost"), target: v("target") / 100 };
+      document.getElementById("rows").innerHTML = PRODUCTS.map((p) => {
+        const gross = p.price - p.cost;
+        const net = netProfit(p.price, p.cost, a);
+        const margin = net / p.price;
+        // ROAS للتعادل = السعر ÷ (أقصى إنفاق إعلاني ممكن قبل الخسارة)
+        const maxAd = net + a.cpa;
+        const beRoas = maxAd > 0 ? f(p.price / maxAd) : "—";
+        // حل معادلة السعر الذي يحقق الهامش المستهدف: net(P) = target × P
+        const k = (1 - a.rto) * (1 - a.fee) - a.target;
+        const suggested = k > 0 ? ((1 - a.rto) * p.cost + a.cpa + a.rto * a.rtoCost) / k : NaN;
+        return `<tr>
+          <td>${p.icon} ${p.name}</td>
+          <td>${f(p.cost)}</td><td>${f(p.price)}</td><td>${f(gross)}</td>
+          <td class="${net < 0 ? "neg" : "pos"}">${f(net)}</td>
+          <td class="${margin < 0 ? "neg" : "pos"}">${(margin * 100).toFixed(1)}%</td>
+          <td>${beRoas}</td>
+          <td>${isNaN(suggested) ? "—" : f(suggested)}</td>
+        </tr>`;
+      }).join("");
+    }
+    ids.forEach((id) => document.getElementById(id).addEventListener("input", render));
+    render();
+  </script>
+</body>
+</html>
