@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>دليل استخدام مساعد AsaadStat</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --ink:#1d2433; --muted:#5b6475; --brand:#0f5c6e; --brand2:#e7f1f3; --line:#d9dee5; --warn:#8a5a00; --warnbg:#fff6e0; }
+  @page { size: A4; margin: 18mm 16mm 18mm 16mm; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Tajawal', 'DejaVu Sans', sans-serif; color: var(--ink); font-size: 11pt; line-height: 1.65; margin: 0; background:#fff; }
+  code, pre, .ltr { font-family: 'IBM Plex Mono', 'DejaVu Sans Mono', monospace; direction: ltr; unicode-bidi: embed; }
+  code { background: #f2f4f7; padding: 1px 5px; border-radius: 4px; font-size: 9.5pt; }
+  pre { background: #f5f7f9; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; font-size: 9pt; line-height: 1.5; text-align: left; white-space: pre-wrap; margin: 8px 0 12px; }
+  h1, h2, h3 { line-height: 1.35; }
+  h2 { color: var(--brand); font-size: 17pt; font-weight: 800; margin: 0 0 10px; padding-bottom: 6px; border-bottom: 2px solid var(--brand2); }
+  h3 { font-size: 12.5pt; font-weight: 700; margin: 16px 0 6px; }
+  p { margin: 6px 0 10px; }
+  section { page-break-before: always; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0 14px; font-size: 10pt; }
+  th { background: var(--brand); color: #fff; font-weight: 700; text-align: right; padding: 7px 9px; }
+  td { border-bottom: 1px solid var(--line); padding: 5px 9px; vertical-align: top; }
+  tr:nth-child(even) td { background: #fafbfc; }
+  td code { white-space: nowrap; }
+  td.ex code, td.ex { display:block; direction:ltr; text-align:left; white-space:pre-wrap; word-break:break-word; font-size:8.6pt; background:none; padding:0; }
+  td.ex { display:table-cell; }
+  .tip, .warn { border-radius: 8px; padding: 9px 13px; margin: 10px 0; font-size: 10.5pt; }
+  .tip { background: var(--brand2); border-right: 4px solid var(--brand); }
+  .warn { background: var(--warnbg); border-right: 4px solid var(--warn); }
+  ol, ul { margin: 4px 0 10px; padding-right: 22px; }
+  li { margin: 3px 0; }
+  .steps { counter-reset: s; list-style: none; padding: 0; }
+  .steps li { counter-increment: s; position: relative; padding-right: 38px; margin: 7px 0; }
+  .steps li::before { content: counter(s); position: absolute; right: 0; top: 1px; width: 26px; height: 26px; border-radius: 50%; background: var(--brand); color: #fff; font-weight: 700; text-align: center; line-height: 27px; font-size: 10.5pt; }
+
+  /* cover */
+  .cover { height: 255mm; display: flex; flex-direction: column; justify-content: space-between; }
+  .cover .top { margin-top: 40mm; }
+  .brand { font-size: 13pt; font-weight: 700; color: var(--brand); letter-spacing: .5px; }
+  .cover h1 { font-size: 34pt; font-weight: 800; margin: 10px 0 6px; }
+  .cover .sub { font-size: 14pt; color: var(--muted); }
+  .cover .bar { width: 70px; height: 5px; background: var(--brand); border-radius: 3px; margin: 18px 0; }
+  .cover .motto { font-size: 12pt; color: var(--brand); font-weight: 500; }
+  .cover .meta { font-size: 10pt; color: var(--muted); border-top: 1px solid var(--line); padding-top: 10px; }
+  .toc { margin-top: 8px; }
+  .toc li { margin: 6px 0; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
+  .card { border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; }
+  .card b { color: var(--brand); }
+</style>
+</head>
+<body>
+
+<!-- ============ COVER ============ -->
+<div class="cover">
+  <div class="top">
+    <div class="brand">AsaadStat</div>
+    <h1>دليل استخدام<br>المساعد الشخصي</h1>
+    <div class="sub">مساعد إحصائي وبحثي مبني على Claude Code</div>
+    <div class="bar"></div>
+    <div class="motto">Data → Information → Knowledge → Decision</div>
+  </div>
+  <div class="meta">
+    الإصدار 1.0 · نوفمبر 2026 · المستودع: <span class="ltr">github.com/assad881/test</span>
+  </div>
+</div>
+
+<!-- ============ CONTENTS ============ -->
+<section>
+  <h2>المحتويات</h2>
+  <ol class="toc">
+    <li>ما هو المساعد؟</li>
+    <li>التشغيل لأول مرة</li>
+    <li>الأوامر الجاهزة</li>
+    <li>التحليل الآلي الكامل خطوة بخطوة</li>
+    <li>ملف خطة التحليل <code>plan.json</code></li>
+    <li>التقارير العربية</li>
+    <li>تحليل منحنى ROC</li>
+    <li>حجم العينة والأدوات الإضافية</li>
+    <li>إدارة العملاء والمهام اليومية</li>
+    <li>الخصوصية، النصائح وحل المشكلات</li>
+  </ol>
+
+  <h2 style="margin-top:28px">1. ما هو المساعد؟</h2>
+  <p>المساعد هو إعداد لـ Claude Code يجعله يعمل كـ<b>إحصائي أول ومستشار بيانات ومساعد تنفيذي</b> لك، يعرف طبيعة عملك في المديرية العامة للخدمات الصحية بمحافظة الظاهرة ومشروع AsaadStat، ويلتزم بمعاييرك في التقرير الإحصائي.</p>
+  <div class="grid">
+    <div class="card"><b>ملف التعريف</b><br><code>CLAUDE.md</code> — يُحمَّل تلقائياً: هويتك، أسلوبك، ومعايير التقرير.</div>
+    <div class="card"><b>الأوامر الجاهزة</b><br>13 أمراً تبدأ بـ <code>/</code> لمهامك المتكررة.</div>
+    <div class="card"><b>محرك التحليل الآلي</b><br>Excel + خطة ← تقرير Word وجداول وSPSS syntax.</div>
+    <div class="card"><b>قاعدة المعرفة</b><br>معايير التقرير، دليل اختيار الاختبار، الأسعار، المهام.</div>
+  </div>
+  <h3>معايير يلتزم بها في كل المخرجات</h3>
+  <ul>
+    <li>قيمة p بثلاث خانات عشرية، و <code>p &lt; 0.001</code> عند الأصغر — لا يكتب أبداً <code>p = 0.000</code>.</li>
+    <li>كل اختبار مع قيمته ودرجات الحرية وحجم الأثر (d, r, η², Cramér's V, AOR مع 95% CI).</li>
+    <li>الانحدار اللوجستي: OR غير المعدّلة والمعدّلة، Nagelkerke، Hosmer–Lemeshow، وفحص EPV ≥ 10.</li>
+    <li>لا يخترع أرقاماً: إن غابت المخرجات يطلبها أو يحسبها بالمحرك.</li>
+    <li>لا يستخدم لغة سببية في الدراسات المقطعية.</li>
+  </ul>
+  <h3>ما يحسبه محرك التحليل تلقائياً</h3>
+  <p>التكرارات والنسب · ألفا كرونباخ وα عند حذف البند · درجات ومستويات KAP (Bloom) · اختيار الاختبار حسب التوزيع والتجانس (t / Welch / Mann–Whitney / ANOVA / Welch ANOVA / Kruskal–Wallis) مع حجم الأثر · مربع كاي/فيشر مع Cramér's V · سبيرمان · الانحدار اللوجستي · ROC.</p>
+</section>
+
+<!-- ============ SETUP ============ -->
+<section>
+  <h2>2. التشغيل لأول مرة</h2>
+  <ol class="steps">
+    <li><b>افتح Claude Code على المستودع.</b><br>من المتصفح: <code>claude.ai/code</code> ثم اختر المستودع <code>assad881/test</code>. أو من جهازك:
+<pre>git clone https://github.com/assad881/test.git
+cd test
+claude</pre></li>
+    <li><b>ثبّت المكتبات مرة واحدة</b> (تحتاجها للتحليل الآلي):
+<pre>pip install pandas scipy statsmodels openpyxl python-docx tabulate matplotlib</pre></li>
+    <li><b>جرّب المثال التجريبي</b> للتأكد أن كل شيء يعمل:
+<pre>python3 assistant/engine/auto_analysis.py assistant/examples/kap_plan.json</pre>
+    ستجد المخرجات في <code>assistant/output/</code>.</li>
+    <li><b>خصّص الإعدادات:</b> أدخل أسعارك في <code>assistant/knowledge/pricing.md</code> وأضف مهامك في <code>assistant/TASKS.md</code>.</li>
+  </ol>
+  <div class="tip">💡 لا تحتاج تذكير Claude بمن أنت في كل جلسة — ملف <code>CLAUDE.md</code> يُقرأ تلقائياً عند فتح المستودع. يمكنك الكتابة بالعربية أو الإنجليزية، وسيرد بنفس لغتك.</div>
+
+  <h3>هيكل المجلدات</h3>
+<pre>CLAUDE.md                     ملف التعريف
+.claude/commands/             الأوامر الجاهزة (/analyze, /roc, ...)
+assistant/
+  engine/                     محرك التحليل (Python)
+  templates/                  قالب خطة التحليل
+  knowledge/                  معايير التقرير، اختيار الاختبار، الأسعار
+  clients/                    ملفات العملاء (خاصة — لا تُرفع)
+  output/                     المخرجات (خاصة — لا تُرفع)
+  examples/                   بيانات ومخرجات تجريبية
+  TASKS.md                    قائمة المهام</pre>
+</section>
+
+<!-- ============ COMMANDS ============ -->
+<section>
+  <h2>3. الأوامر الجاهزة</h2>
+  <p>اكتب الأمر في Claude Code متبوعاً بما تريد. الأمثلة قابلة للنسخ مباشرة.</p>
+  <table>
+    <tr><th style="width:16%">الأمر</th><th style="width:44%">ماذا يفعل</th><th>مثال</th></tr>
+    <tr><td><code>/analyze</code></td><td>تحليل كامل آلي: فحص البيانات، بناء الخطة، التشغيل، المراجعة، التسليم</td><td class="ex"><code>/analyze clients/nursing/data.xlsx clients/nursing/q.docx</code></td></tr>
+    <tr><td><code>/roc</code></td><td>منحنى ROC: AUC، نقطة القطع المثلى، الحساسية والنوعية، مقارنة DeLong</td><td class="ex"><code>/roc data.xlsx diabetes HbA1c FBS</code></td></tr>
+    <tr><td><code>/interpret</code></td><td>تفسير مخرجات SPSS ملصقة: هل الاختبار صحيح؟ الأرقام، المعنى، فقرة جاهزة، التنبيهات</td><td class="ex"><code>/interpret</code> <span style="font-family:Tajawal">ثم الصق جدول SPSS</span></td></tr>
+    <tr><td><code>/results</code></td><td>كتابة قسم النتائج للمجلات المحكمة + عناوين الجداول + أهم النتائج للملخص</td><td class="ex"><code>/results output/Project_summary.md</code></td></tr>
+    <tr><td><code>/spss</code></td><td>SPSS syntax جاهز: ترميز، RECODE، COMPUTE، الاختبارات وافتراضاتها</td><td class="ex"><code>/spss recode age into 3 groups and run chi-square with smoking</code></td></tr>
+    <tr><td><code>/sample-size</code></td><td>حساب حجم العينة + فقرة Methods + جدول حساسية</td><td class="ex"><code>/sample-size cross-sectional, p=0.4, margin 5%, N=2500</code></td></tr>
+    <tr><td><code>/methodology</code></td><td>منهجية كاملة: التصميم، العينة، الأداة، خطة التحليل، الأخلاقيات</td><td class="ex"><code>/methodology burnout among nurses in Al Dhahirah</code></td></tr>
+    <tr><td><code>/stat-review</code></td><td>مراجعة إحصائية لمخطوطة كمحكّم مع تعليقات جاهزة</td><td class="ex"><code>/stat-review manuscript.docx</code></td></tr>
+    <tr><td><code>/decision-brief</code></td><td>موجز قرار من صفحة واحدة بالعربية لصنّاع القرار مع جدول توصيات</td><td class="ex"><code>/decision-brief</code> <span style="font-family:Tajawal">نتائج مسح رضا المراجعين</span></td></tr>
+    <tr><td><code>/client</code></td><td>طلب عميل AsaadStat: النطاق، الساعات، السعر، المدة، رسالة الرد</td><td class="ex"><code>/client</code> <span style="font-family:Tajawal">ثم الصق رسالة العميل</span></td></tr>
+    <tr><td><code>/today</code></td><td>خطة اليوم من TASKS.md: أهم 3 أولويات وجدول زمني</td><td class="ex"><code>/today</code></td></tr>
+    <tr><td><code>/learn</code></td><td>جلسة تعلم Python/SQL/SAS مربوطة بما تعرفه في SPSS، مع تمارين</td><td class="ex"><code>/learn pandas groupby</code></td></tr>
+  </table>
+  <div class="tip">💡 يمكنك أيضاً الكتابة بشكل طبيعي دون أوامر، مثل: «فسّر لي هذا الجدول» أو «اكتب لي فقرة النتائج بالعربي». الأوامر فقط تضمن خطوات ثابتة ومخرجات كاملة.</div>
+</section>
+
+<!-- ============ ANALYZE ============ -->
+<section>
+  <h2>4. التحليل الآلي الكامل خطوة بخطوة</h2>
+  <h3>أ. جهّز ملف البيانات</h3>
+  <ul>
+    <li>ملف Excel أو CSV: <b>صف لكل مشارك</b> و<b>عمود لكل متغير</b>، والصف الأول أسماء المتغيرات.</li>
+    <li>أسماء أعمدة قصيرة بلا مسافات: <code>K1, K2, A1, gender, age_group</code>.</li>
+    <li>البنود مرمّزة رقمياً: معرفة (1 صحيح / 0 خطأ)، ليكرت (1–5).</li>
+    <li>احذف الأسماء والأرقام المدنية وأي بيانات تعريفية قبل التحليل.</li>
+  </ul>
+  <h3>ب. ضعه في مجلد العميل</h3>
+<pre>assistant/clients/nursing_kap/data.xlsx
+assistant/clients/nursing_kap/questionnaire.docx</pre>
+  <h3>ج. شغّل الأمر</h3>
+<pre>/analyze assistant/clients/nursing_kap/data.xlsx assistant/clients/nursing_kap/questionnaire.docx</pre>
+  <h3>د. ماذا يحدث؟</h3>
+  <ol class="steps">
+    <li><b>فحص جودة البيانات:</b> القيم المفقودة، القيم خارج المدى، التكرار — ويعرض لك جدولاً بالمشكلات.</li>
+    <li><b>بناء الخطة:</b> يقرأ الاستبيان ويحدد المحاور والبنود العكسية ونقاط القطع والمتغيرات المنبئة.</li>
+    <li><b>عرض الخطة عليك:</b> جدول (الهدف ← المتغيرات ← الاختبار) مع الافتراضات.</li>
+    <li><b>التشغيل والمراجعة:</b> يراجع النتائج نقدياً (الافتراضات، الخلايا القليلة، EPV) ويعيد التشغيل إن لزم.</li>
+    <li><b>التسليم:</b> قائمة الملفات و5–7 نتائج رئيسية والمحددات.</li>
+  </ol>
+  <h3>هـ. المخرجات</h3>
+  <table>
+    <tr><th style="width:34%">الملف</th><th>المحتوى</th></tr>
+    <tr><td><code>*_report.docx</code></td><td>تقرير Word بجداول APA وفقرات تفسير بالإنجليزية</td></tr>
+    <tr><td><code>*_report_ar.docx</code></td><td>نفس التقرير بالعربية (من اليمين لليسار)</td></tr>
+    <tr><td><code>*_tables.xlsx</code></td><td>كل جدول في ورقة مستقلة + إحداثيات ROC كاملة</td></tr>
+    <tr><td><code>*_roc.png</code></td><td>منحنيات ROC</td></tr>
+    <tr><td><code>*_syntax.sps</code></td><td>SPSS syntax مطابق للتحليل — لإعادة التحليل في SPSS</td></tr>
+    <tr><td><code>*_scored_data.xlsx</code></td><td>البيانات مع الدرجات والنسب والمستويات المحسوبة</td></tr>
+    <tr><td><code>*_summary.md</code></td><td>ملخص نصي يستخدمه Claude لكتابة النتائج ومراجعتها</td></tr>
+  </table>
+</section>
+
+<!-- ============ PLAN ============ -->
+<section>
+  <h2>5. ملف خطة التحليل <code>plan.json</code></h2>
+  <p>الخطة تخبر المحرك ماذا يحلل. عادةً يكتبها Claude لك عبر <code>/analyze</code>، لكن من المفيد فهم حقولها لتعديلها. انطلق من القالب <code>assistant/templates/analysis_plan_template.json</code>.</p>
+  <table>
+    <tr><th style="width:26%">الحقل</th><th>الوظيفة</th></tr>
+    <tr><td><code>project</code>, <code>title</code></td><td>اسم المشروع (يُستخدم في أسماء الملفات) وعنوان التقرير</td></tr>
+    <tr><td><code>data</code></td><td>مسار ملف البيانات نسبةً لمكان الخطة</td></tr>
+    <tr><td><code>demographics</code></td><td>المتغيرات الديموغرافية لجدول الخصائص</td></tr>
+    <tr><td><code>scales</code></td><td>المحاور: البنود، الحد الأدنى والأعلى، البنود العكسية، نقاط القطع (افتراضياً 60 و80٪)، أسماء المستويات</td></tr>
+    <tr><td><code>group_comparisons</code></td><td>مقارنة الدرجات حسب الخصائص (يختار الاختبار آلياً)</td></tr>
+    <tr><td><code>associations</code></td><td>مربع كاي بين الخصائص ومستوى المحور</td></tr>
+    <tr><td><code>correlations</code></td><td>متغيرات مصفوفة ارتباط سبيرمان</td></tr>
+    <tr><td><code>logistic</code></td><td>المتغير التابع، قيمة الحدث، المتغيرات المنبئة، الفئات المرجعية</td></tr>
+    <tr><td><code>roc</code></td><td>تحليل ROC (انظر القسم 7)</td></tr>
+    <tr><td><code>languages</code></td><td><code>["en"]</code> أو <code>["ar"]</code> أو <code>["en","ar"]</code></td></tr>
+    <tr><td><code>recode</code></td><td>تحويل نصوص إلى أرقام، مثل صحيح/خطأ ← 1/0</td></tr>
+  </table>
+  <h3>مثال لمحور</h3>
+<pre>"scales": {
+  "Attitude": {
+    "items": ["A1","A2","A3","A4","A5","A6","A7","A8"],
+    "item_min": 1, "item_max": 5,
+    "reverse_items": ["A8"],
+    "cutoffs_pct": [60, 80],
+    "labels": ["Negative", "Neutral", "Positive"]
+  }
+}</pre>
+  <p>ينشئ المحرك تلقائياً: <code>Attitude_score</code> و<code>Attitude_pct</code> و<code>Attitude_level</code> و<code>Attitude_adequate</code> (كافٍ/غير كافٍ عند نقطة القطع الأولى) — ويمكن استخدامها في المقارنات والانحدار وROC.</p>
+  <div class="warn">⚠ نقاط قطع Bloom (60/80٪) افتراضية — تأكد أنها تناسب أداة دراستك والأدبيات قبل النشر.</div>
+</section>
+
+<!-- ============ ARABIC ============ -->
+<section>
+  <h2>6. التقارير العربية</h2>
+  <p>للحصول على تقرير عربي، اطلب ذلك صراحةً من Claude («أريد التقرير بالعربي»)، أو أضف للخطة:</p>
+<pre>"languages": ["en", "ar"],
+"title_ar": "معارف واتجاهات وممارسات الممرضين تجاه العناية بالقدم السكرية",
+"var_labels": {
+  "gender":    {"en": "Gender",      "ar": "الجنس"},
+  "education": {"en": "Education",   "ar": "المؤهل العلمي"},
+  "Knowledge_score": {"en": "Knowledge score", "ar": "درجة المعرفة"}
+},
+"value_labels_ar": {"Bachelor": "بكالوريوس", "Hospital": "مستشفى"}</pre>
+  <p>أو من سطر الأوامر مباشرة:</p>
+<pre>python3 assistant/engine/auto_analysis.py plan.json --lang ar
+python3 assistant/engine/auto_analysis.py plan.json --lang en,ar</pre>
+  <h3>خصائص التقرير العربي</h3>
+  <ul>
+    <li>صفحة وجداول وفقرات من اليمين لليسار، والجداول العريضة في صفحات أفقية.</li>
+    <li>العناوين والتفسير والملاحظات وأسماء الاختبارات بالعربية.</li>
+    <li>الرموز الإحصائية والأرقام بالحروف اللاتينية (المعتاد في التقارير الخليجية).</li>
+    <li>فئات شائعة مترجمة مسبقاً: ذكر/أنثى، نعم/لا، جيد/متوسط/ضعيف، كافٍ/غير كافٍ، عُماني/غير عُماني.</li>
+  </ul>
+  <div class="tip">💡 كل النصوص العربية في ملف واحد: <code>assistant/engine/i18n.py</code>. لتغيير أي صياغة لتناسب أسلوب المديرية، اطلب من Claude: «عدّل صياغة فقرة الانحدار في التقرير العربي إلى …».</div>
+  <div class="warn">⚠ أسماء المنحنيات داخل صورة ROC تبقى بالإنجليزية (عنوان الشكل في التقرير بالعربية).</div>
+</section>
+
+<!-- ============ ROC ============ -->
+<section>
+  <h2>7. تحليل منحنى ROC</h2>
+  <p>يُستخدم لتقييم قدرة مؤشر أو درجة (مثل HbA1c أو درجة مقياس) على التمييز بين حالتين (مريض/سليم، كافٍ/غير كافٍ).</p>
+  <h3>الطريقة السريعة</h3>
+<pre>/roc assistant/clients/study/data.xlsx diabetes_status HbA1c FBS</pre>
+  <h3>في الخطة</h3>
+<pre>"roc": {
+  "outcome": "Practice_adequate",
+  "event": "Adequate",
+  "markers": ["Knowledge_score", "Attitude_score"],
+  "direction": {"Attitude_score": "higher"},
+  "include_logistic_model": true
+}</pre>
+  <table>
+    <tr><th style="width:30%">الحقل</th><th>المعنى</th></tr>
+    <tr><td><code>outcome</code> / <code>event</code></td><td>المعيار المرجعي وقيمة الحالة الموجبة</td></tr>
+    <tr><td><code>markers</code></td><td>مؤشر واحد أو أكثر للمقارنة</td></tr>
+    <tr><td><code>direction</code></td><td><code>"higher"</code> إن كانت القيم الأعلى تدل على الحالة (افتراضي)، أو <code>"lower"</code></td></tr>
+    <tr><td><code>include_logistic_model</code></td><td>إضافة منحنى للاحتمال المتنبأ من نموذج الانحدار</td></tr>
+  </table>
+  <h3>ما ستحصل عليه</h3>
+  <ul>
+    <li>AUC مع فترة ثقة 95% (DeLong) وقيمة p، وتفسيرها (مقبولة / ممتازة / ممتازة جداً).</li>
+    <li>نقطة القطع المثلى بمؤشر Youden مع الحساسية والنوعية (فترات Wilson).</li>
+    <li>PPV وNPV (تعتمدان على نسبة الانتشار) وLR+ وLR−.</li>
+    <li>مقارنة DeLong بين المؤشرات، ومنحنى ROC، وجدول إحداثيات كامل في Excel.</li>
+    <li>أمر <code>ROC</code> في SPSS syntax لإعادة التحليل.</li>
+  </ul>
+  <div class="warn">⚠ إذا ظهرت AUC &lt; 0.5 فالقيم الأقل هي المنبئة — غيّر <code>direction</code> إلى <code>"lower"</code> بدلاً من عكس القيمة يدوياً. وانتبه عندما يقل عدد الحالات الموجبة عن 30 لأن فترات الثقة تصبح واسعة.</div>
+</section>
+
+<!-- ============ SAMPLE SIZE ============ -->
+<section>
+  <h2>8. حجم العينة والأدوات الإضافية</h2>
+  <p>الأسهل: <code>/sample-size</code> مع وصف الدراسة. أو مباشرة:</p>
+  <table>
+    <tr><th style="width:26%">التصميم</th><th>الأمر</th></tr>
+    <tr><td>نسبة واحدة (مسح مقطعي)</td><td class="ex"><code>sample_size.py proportion --p 0.5 --margin 0.05 --population 1200 --nonresponse 0.1</code></td></tr>
+    <tr><td>مقارنة نسبتين</td><td class="ex"><code>sample_size.py two-proportions --p1 0.30 --p2 0.45 --power 0.8</code></td></tr>
+    <tr><td>مقارنة متوسطين</td><td class="ex"><code>sample_size.py two-means --sd 10 --diff 4</code></td></tr>
+    <tr><td>معامل ارتباط</td><td class="ex"><code>sample_size.py correlation --r 0.25</code></td></tr>
+    <tr><td>انحدار لوجستي (EPV)</td><td class="ex"><code>sample_size.py logistic --predictors 8 --event-rate 0.3</code></td></tr>
+  </table>
+  <p>كل الأوامر تبدأ بـ <code>python3 assistant/engine/</code>. مثال على المخرجات:</p>
+<pre>Cochran n0 = 384.1
+Finite population correction (N=1200) → n = 291.2
+Final sample (non-response 10%) = 324</pre>
+  <p>ومعه فقرة Methods جاهزة للنسخ.</p>
+  <h3>أدوات أخرى في <code>stats_core.py</code></h3>
+  <ul>
+    <li><b>Cohen's Kappa + PABAK</b> لاتفاق مقيّمَين مع تصنيف Landis &amp; Koch — اطلب: «احسب كابا بين العمودين rater1 و rater2».</li>
+    <li><b>ألفا كرونباخ</b> لأي مجموعة بنود مع α عند حذف كل بند.</li>
+  </ul>
+  <h3>المراجع السريعة</h3>
+  <ul>
+    <li><code>assistant/knowledge/reporting_standards.md</code> — قوالب صياغة كل اختبار وعتبات حجم الأثر.</li>
+    <li><code>assistant/knowledge/test_selection.md</code> — جدول اختيار الاختبار حسب نوع المتغير.</li>
+  </ul>
+</section>
+
+<!-- ============ CLIENTS ============ -->
+<section>
+  <h2>9. إدارة العملاء والمهام اليومية</h2>
+  <h3>عميل جديد لـ AsaadStat</h3>
+<pre>/client
+السلام عليكم، أنا طالبة ماجستير تمريض، عندي استبيان KAP عن سرطان الثدي
+وبيانات 250 مشاركة، أحتاج تحليل كامل مع كتابة النتائج خلال أسبوعين.</pre>
+  <p>سيعطيك: ملخص النطاق والملفات الناقصة · تقدير الساعات · السعر حسب ملف الأسعار · الجدول الزمني · <b>رسالة رد جاهزة للإرسال</b> · وينشئ مجلد العميل ويضيف مهمة في TASKS.md.</p>
+  <div class="warn">⚠ ملف الأسعار <code>knowledge/pricing.md</code> فارغ حالياً — املأه أولاً، وإلا سيعرض المساعد الأسعار كمقترحات تحتاج تأكيدك.</div>
+  <h3>خطة اليوم</h3>
+<pre>/today</pre>
+  <p>يقرأ <code>TASKS.md</code> ويعطيك أهم 3 أولويات وجدولاً زمنياً (الأحد–الخميس) والمهام المتأخرة وجلسة تعلم قصيرة. أضف مهامك بالكتابة الطبيعية: «أضف مهمة: مراجعة بيانات مسح الرضا، الموعد الخميس».</p>
+  <h3>موجز لصنّاع القرار</h3>
+<pre>/decision-brief نتائج مؤشرات زمن الانتظار في المراكز الصحية للربع الثالث</pre>
+  <p>صفحة واحدة بالعربية: الرسالة الرئيسية، المؤشرات، التفسير، جدول توصيات (الإجراء | المسؤول | الإطار الزمني | مؤشر المتابعة)، ومقترحات لرسوم Power BI.</p>
+  <h3>التعلم</h3>
+<pre>/learn SQL joins
+/learn pandas groupby
+/learn SAS PROC FREQ</pre>
+  <p>كل جلسة تربط المفهوم بما يقابله في SPSS، مع مثال على بيانات صحية وتمرينين.</p>
+</section>
+
+<!-- ============ PRIVACY & TIPS ============ -->
+<section>
+  <h2>10. الخصوصية، النصائح وحل المشكلات</h2>
+  <h3>الخصوصية</h3>
+  <ul>
+    <li>المجلدان <code>assistant/clients/</code> و<code>assistant/output/</code> <b>مستبعدان من git</b> — لا تُرفع بيانات المشاركين أبداً.</li>
+    <li>احذف المعرّفات الشخصية واستبدلها بأرقام تسلسلية قبل التحليل.</li>
+    <li>لا تنقل البيانات الحقيقية إلى مجلد <code>examples/</code>.</li>
+  </ul>
+  <h3>نصائح لأفضل نتيجة</h3>
+  <ul>
+    <li>أرفق الاستبيان دائماً مع البيانات — يحسّن تحديد المحاور والبنود العكسية.</li>
+    <li>اذكر أهداف الدراسة — ليختار المتغير التابع والمنبئات بشكل صحيح.</li>
+    <li>راجع الخطة التي يعرضها قبل الموافقة، خاصة نقاط القطع والفئات المرجعية.</li>
+    <li>استخدم ملف <code>*_syntax.sps</code> للتحقق من النتائج في SPSS قبل التسليم للعميل.</li>
+  </ul>
+  <h3>حل المشكلات</h3>
+  <table>
+    <tr><th style="width:38%">المشكلة</th><th>الحل</th></tr>
+    <tr><td><code>ModuleNotFoundError</code></td><td>شغّل أمر تثبيت المكتبات في القسم 2</td></tr>
+    <tr><td><code>KeyError</code> باسم عمود</td><td>اسم العمود في الخطة لا يطابق Excel — تأكد من الحروف والمسافات</td></tr>
+    <tr><td>Model failed في الانحدار</td><td>فئة قليلة العدد أو انفصال تام — ادمج الفئات أو قلّل المنبئات</td></tr>
+    <tr><td>تحذير EPV &lt; 10</td><td>قلّل عدد المتغيرات المنبئة أو اجمع فئات</td></tr>
+    <tr><td>تحذير خلايا متوقعة &lt; 5</td><td>ادمج الفئات أو اعتمد اختبار فيشر</td></tr>
+    <tr><td>AUC &lt; 0.5</td><td>غيّر <code>direction</code> للمؤشر إلى <code>"lower"</code></td></tr>
+    <tr><td>الأرقام بين الأقواس تبدو مقلوبة في السطر العربي</td><td>يحدث فقط عند التفاف السطر في Word — عدّل عرض الصفحة أو اقسم الجملة</td></tr>
+  </table>
+  <div class="tip">💡 عند أي شك، اكتب لـ Claude مباشرة: «ظهر لي هذا الخطأ …» والصق الرسالة — سيشخّصه ويصلحه.</div>
+  <p style="margin-top:30px;color:var(--muted);font-size:10pt">AsaadStat · Data → Information → Knowledge → Decision</p>
+</section>
+
+</body>
+</html>
