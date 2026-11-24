@@ -1,0 +1,233 @@
+{
+  "project": "CLIENT_PROJECT_NAME",
+  "title": "Knowledge, Attitude and Practice of Nurses Towards Diabetic Foot Care",
+  "data": "../clients/CLIENT/data.xlsx",
+  "output_dir": "../output",
+  "alpha": 0.05,
+  "demographics": [
+    "age_group",
+    "gender",
+    "nationality",
+    "education",
+    "experience",
+    "facility",
+    "training"
+  ],
+  "scales": {
+    "Knowledge": {
+      "items": [
+        "K1",
+        "K2",
+        "K3",
+        "K4",
+        "K5",
+        "K6",
+        "K7",
+        "K8",
+        "K9",
+        "K10"
+      ],
+      "item_min": 0,
+      "item_max": 1,
+      "cutoffs_pct": [
+        60,
+        80
+      ],
+      "labels": [
+        "Poor",
+        "Moderate",
+        "Good"
+      ],
+      "binary_cutoff_pct": 60
+    },
+    "Attitude": {
+      "items": [
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "A5",
+        "A6",
+        "A7",
+        "A8"
+      ],
+      "item_min": 1,
+      "item_max": 5,
+      "reverse_items": [
+        "A8"
+      ],
+      "cutoffs_pct": [
+        60,
+        80
+      ],
+      "labels": [
+        "Negative",
+        "Neutral",
+        "Positive"
+      ]
+    },
+    "Practice": {
+      "items": [
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6",
+        "P7"
+      ],
+      "item_min": 0,
+      "item_max": 1,
+      "cutoffs_pct": [
+        60,
+        80
+      ],
+      "labels": [
+        "Poor",
+        "Fair",
+        "Good"
+      ],
+      "binary_cutoff_pct": 60
+    }
+  },
+  "item_tables": true,
+  "group_comparisons": {
+    "outcomes": [
+      "Knowledge_score",
+      "Attitude_score",
+      "Practice_score"
+    ],
+    "by": [
+      "age_group",
+      "gender",
+      "nationality",
+      "education",
+      "experience",
+      "facility",
+      "training"
+    ]
+  },
+  "associations": {
+    "outcomes": [
+      "Knowledge_level"
+    ],
+    "by": [
+      "gender",
+      "education",
+      "experience",
+      "training"
+    ]
+  },
+  "correlations": [
+    "Knowledge_score",
+    "Attitude_score",
+    "Practice_score"
+  ],
+  "logistic": {
+    "outcome": "Practice_adequate",
+    "event": "Adequate",
+    "predictors": [
+      "gender",
+      "education",
+      "experience",
+      "training",
+      "Knowledge_score"
+    ],
+    "reference": {
+      "gender": "Female",
+      "education": "Diploma",
+      "training": "No",
+      "experience": "<5 years"
+    }
+  },
+  "languages": [
+    "en",
+    "ar"
+  ],
+  "title_ar": "معارف واتجاهات وممارسات الممرضين تجاه العناية بالقدم السكرية",
+  "var_labels": {
+    "age_group": {
+      "en": "Age group",
+      "ar": "الفئة العمرية"
+    },
+    "gender": {
+      "en": "Gender",
+      "ar": "الجنس"
+    },
+    "nationality": {
+      "en": "Nationality",
+      "ar": "الجنسية"
+    },
+    "education": {
+      "en": "Education",
+      "ar": "المؤهل العلمي"
+    },
+    "experience": {
+      "en": "Experience",
+      "ar": "سنوات الخبرة"
+    },
+    "facility": {
+      "en": "Facility",
+      "ar": "المؤسسة الصحية"
+    },
+    "training": {
+      "en": "Previous training",
+      "ar": "التدريب السابق"
+    },
+    "Knowledge": {
+      "en": "Knowledge",
+      "ar": "المعرفة"
+    },
+    "Attitude": {
+      "en": "Attitude",
+      "ar": "الاتجاهات"
+    },
+    "Practice": {
+      "en": "Practice",
+      "ar": "الممارسة"
+    },
+    "Knowledge_score": {
+      "en": "Knowledge score",
+      "ar": "درجة المعرفة"
+    },
+    "Attitude_score": {
+      "en": "Attitude score",
+      "ar": "درجة الاتجاهات"
+    },
+    "Practice_score": {
+      "en": "Practice score",
+      "ar": "درجة الممارسة"
+    },
+    "Knowledge_level": {
+      "en": "Knowledge level",
+      "ar": "مستوى المعرفة"
+    },
+    "Practice_adequate": {
+      "en": "Adequate practice",
+      "ar": "الممارسة الكافية"
+    }
+  },
+  "roc": {
+    "outcome": "Practice_adequate",
+    "event": "Adequate",
+    "markers": [
+      "Knowledge_score",
+      "Attitude_score"
+    ],
+    "direction": {},
+    "include_logistic_model": true
+  },
+  "value_labels_ar": {
+    "Diploma": "دبلوم",
+    "Bachelor": "بكالوريوس",
+    "Postgraduate": "دراسات عليا",
+    "<5 years": "أقل من 5 سنوات",
+    "5-10 years": "5–10 سنوات",
+    ">10 years": "أكثر من 10 سنوات",
+    "Hospital": "مستشفى",
+    "Health center": "مركز صحي",
+    "<30": "أقل من 30",
+    "30-39": "30–39",
+    "40+": "40 فأكثر"
+  }
+}

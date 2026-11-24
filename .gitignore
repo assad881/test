@@ -1,0 +1,7 @@
+# AsaadStat assistant — keep client data and generated outputs private
+assistant/clients/*
+!assistant/clients/README.md
+assistant/output/*
+!assistant/output/.gitkeep
+__pycache__/
+*.pyc
