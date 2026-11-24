@@ -7,6 +7,8 @@ COMPUTE Knowledge_score = SUM.10(K1, K2, K3, K4, K5, K6, K7, K8, K9, K10).
 COMPUTE Knowledge_pct = (Knowledge_score - 0) / (10 - 0) * 100.
 RECODE Knowledge_pct (LOWEST THRU 59.999=1) (60 THRU 79.999=2) (80 THRU HIGHEST=3) INTO Knowledge_level.
 VALUE LABELS Knowledge_level 1 'Poor' 2 'Moderate' 3 'Good'.
+RECODE Knowledge_pct (LOWEST THRU 59.999=0) (ELSE=1) INTO Knowledge_adequate.
+VALUE LABELS Knowledge_adequate 0 'Inadequate' 1 'Adequate'.
 EXECUTE.
 
 * Reverse-code A8 (example for a 1–5 scale; adjust to your item range).
@@ -17,6 +19,8 @@ COMPUTE Attitude_score = SUM.8(A1, A2, A3, A4, A5, A6, A7, A8_r).
 COMPUTE Attitude_pct = (Attitude_score - 8) / (40 - 8) * 100.
 RECODE Attitude_pct (LOWEST THRU 59.999=1) (60 THRU 79.999=2) (80 THRU HIGHEST=3) INTO Attitude_level.
 VALUE LABELS Attitude_level 1 'Negative' 2 'Neutral' 3 'Positive'.
+RECODE Attitude_pct (LOWEST THRU 59.999=0) (ELSE=1) INTO Attitude_adequate.
+VALUE LABELS Attitude_adequate 0 'Inadequate' 1 'Adequate'.
 EXECUTE.
 
 RELIABILITY /VARIABLES=P1 P2 P3 P4 P5 P6 P7 /SCALE('Practice') ALL
@@ -25,6 +29,8 @@ COMPUTE Practice_score = SUM.7(P1, P2, P3, P4, P5, P6, P7).
 COMPUTE Practice_pct = (Practice_score - 0) / (7 - 0) * 100.
 RECODE Practice_pct (LOWEST THRU 59.999=1) (60 THRU 79.999=2) (80 THRU HIGHEST=3) INTO Practice_level.
 VALUE LABELS Practice_level 1 'Poor' 2 'Fair' 3 'Good'.
+RECODE Practice_pct (LOWEST THRU 59.999=0) (ELSE=1) INTO Practice_adequate.
+VALUE LABELS Practice_adequate 0 'Inadequate' 1 'Adequate'.
 EXECUTE.
 
 FREQUENCIES VARIABLES=age_group gender nationality education experience facility training /ORDER=ANALYSIS.
@@ -67,4 +73,13 @@ NONPAR CORR /VARIABLES=Knowledge_score Attitude_score Practice_score /PRINT=SPEA
 LOGISTIC REGRESSION VARIABLES Practice_adequate
   /METHOD=ENTER gender education experience training Knowledge_score
   /CONTRAST (gender)=Indicator(1)
+  /SAVE=PRED(PRE_1)
   /PRINT=GOODFIT CI(95) /CRITERIA=PIN(.05) POUT(.10) ITERATE(20) CUT(.5).
+
+* ROC: the state variable must be numeric (1 = event). Recode first if it is text.
+ROC Knowledge_score Attitude_score PRE_1 BY Practice_adequate (1)
+  /PLOT=CURVE(REFERENCE)
+  /PRINT=SE COORDINATES
+  /CRITERIA=CUTOFF(INCLUDE) TESTPOS(LARGE) DISTRIBUTION(FREE) CI(95)
+  /MISSING=EXCLUDE.
+* Youden J = Sensitivity + Specificity - 1 (compute from the coordinates table).

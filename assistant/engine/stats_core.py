@@ -326,6 +326,7 @@ def logistic_regression(df: pd.DataFrame, outcome: str, predictors: list[str],
         "hosmer_lemeshow_p": _hosmer_lemeshow(y.values, model.predict(X).values),
         "accuracy": float((pred == y).mean()),
         "epv": y.sum() / max(1, X.shape[1] - 1),
+        "pred": pd.Series(model.predict(X).values, index=d.index),
     }
 
 
@@ -338,3 +339,99 @@ def _hosmer_lemeshow(y, p, g=10) -> float:
     agg = d.groupby("grp", observed=True).agg(obs=("y", "sum"), exp=("p", "sum"), n=("y", "size"))
     hl = (((agg.obs - agg.exp) ** 2) / (agg.exp * (1 - agg.exp / agg.n))).sum()
     return float(stats.chi2.sf(hl, len(agg) - 2))
+
+
+# ---------------------------------------------------------------- ROC / diagnostic accuracy
+def _wilson(k: int, n: int, z: float = 1.96) -> tuple[float, float]:
+    if n == 0:
+        return (np.nan, np.nan)
+    p = k / n
+    den = 1 + z**2 / n
+    c = (p + z**2 / (2 * n)) / den
+    h = z * math.sqrt(p * (1 - p) / n + z**2 / (4 * n**2)) / den
+    return (max(0.0, c - h), min(1.0, c + h))
+
+
+def _placements(pos: np.ndarray, neg: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """DeLong structural components V10 (per positive) and V01 (per negative)."""
+    cmp = (pos[:, None] > neg[None, :]).astype(float) + 0.5 * (pos[:, None] == neg[None, :])
+    return cmp.mean(axis=1), cmp.mean(axis=0)
+
+
+def auc_label(a: float) -> str:  # Hosmer & Lemeshow
+    if np.isnan(a):
+        return "not computable"
+    for cut, lab in [(0.9, "outstanding"), (0.8, "excellent"), (0.7, "acceptable"), (0.6, "poor")]:
+        if a >= cut:
+            return lab
+    return "fail"
+
+
+def roc_analysis(y: pd.Series, score: pd.Series, higher_is_positive: bool = True) -> dict:
+    """ROC for one marker. y: 1 = event, 0 = non-event."""
+    d = pd.DataFrame({"y": y, "s": pd.to_numeric(score, errors="coerce")}).dropna()
+    s = d.s.values if higher_is_positive else -d.s.values
+    pos, neg = s[d.y.values == 1], s[d.y.values == 0]
+    n1, n0 = len(pos), len(neg)
+    if n1 < 2 or n0 < 2:
+        return {"error": "need ≥2 events and ≥2 non-events"}
+    v10, v01 = _placements(pos, neg)
+    auc = v10.mean()
+    se = math.sqrt(v10.var(ddof=1) / n1 + v01.var(ddof=1) / n0)
+    p = stats.mannwhitneyu(pos, neg, alternative="two-sided").pvalue   # H0: AUC = 0.5
+
+    rows = []
+    for t in np.unique(s):
+        tp = int((pos >= t).sum()); fn = n1 - tp
+        tn = int((neg < t).sum()); fp = n0 - tn
+        rows.append({"cut": t if higher_is_positive else -t, "tp": tp, "fp": fp, "tn": tn, "fn": fn,
+                     "se": tp / n1, "sp": tn / n0})
+    coords = pd.DataFrame(rows)
+    coords["youden"] = coords.se + coords.sp - 1
+    best = coords.loc[coords.youden.idxmax()]
+    tp, fp, tn, fn = int(best.tp), int(best.fp), int(best.tn), int(best.fn)
+    se_, sp_ = best.se, best.sp
+    return {
+        "n": n1 + n0, "n_pos": n1, "n_neg": n0, "auc": auc, "se_auc": se,
+        "ci": (max(0.0, auc - 1.96 * se), min(1.0, auc + 1.96 * se)), "p": p,
+        "direction": "≥" if higher_is_positive else "≤", "cutoff": float(best.cut),
+        "sens": se_, "sens_ci": _wilson(tp, n1), "spec": sp_, "spec_ci": _wilson(tn, n0),
+        "ppv": tp / (tp + fp) if tp + fp else np.nan, "npv": tn / (tn + fn) if tn + fn else np.nan,
+        "lr_pos": se_ / (1 - sp_) if sp_ < 1 else np.inf, "lr_neg": (1 - se_) / sp_ if sp_ > 0 else np.inf,
+        "accuracy": (tp + tn) / (n1 + n0), "youden": float(best.youden),
+        "coords": coords.sort_values("cut", ascending=higher_is_positive).reset_index(drop=True),
+        "fpr_tpr": _curve(pos, neg),
+    }
+
+
+def _curve(pos, neg):
+    thr = np.r_[np.inf, np.unique(np.r_[pos, neg])[::-1]]
+    tpr = np.array([(pos >= t).mean() for t in thr])
+    fpr = np.array([(neg >= t).mean() for t in thr])
+    return fpr, tpr
+
+
+def delong_compare(y: pd.Series, scores: dict[str, pd.Series], directions: dict[str, bool]) -> pd.DataFrame:
+    """Pairwise DeLong test for correlated AUCs (complete cases across all markers)."""
+    names = list(scores)
+    d = pd.concat([y.rename("_y")] + [pd.to_numeric(scores[k], errors="coerce").rename(k) for k in names],
+                  axis=1).dropna()
+    yy = d["_y"].values
+    V10, V01, aucs = [], [], []
+    for k in names:
+        s = d[k].values if directions.get(k, True) else -d[k].values
+        a, b = _placements(s[yy == 1], s[yy == 0])
+        V10.append(a); V01.append(b); aucs.append(a.mean())
+    V10, V01 = np.array(V10), np.array(V01)
+    S10, S01 = np.cov(V10), np.cov(V01)
+    n1, n0 = V10.shape[1], V01.shape[1]
+    S = S10 / n1 + S01 / n0
+    rows = []
+    for i in range(len(names)):
+        for j in range(i + 1, len(names)):
+            var = S[i, i] + S[j, j] - 2 * S[i, j]
+            diff = aucs[i] - aucs[j]
+            z = diff / math.sqrt(var) if var > 0 else np.nan
+            rows.append({"a": names[i], "b": names[j], "diff": diff, "z": z,
+                         "p": 2 * stats.norm.sf(abs(z)) if not np.isnan(z) else np.nan, "n": len(d)})
+    return pd.DataFrame(rows)

@@ -37,23 +37,28 @@ every request in this repo.
   (Landis & Koch labels).
 - KAP scoring default: % score with modified Bloom cut-offs (<60 poor, 60–79 moderate, ≥80 good) —
   confirm with the study's questionnaire/literature.
+- ROC: AUC (95% CI) + p, Youden cut-off with Se/Sp (95% CI), PPV/NPV (prevalence-dependent), LR+/LR−;
+  compare AUCs with DeLong; AUC labels per Hosmer & Lemeshow.
+- Arabic reports: Arabic text, statistics/symbols in Latin script and western digits.
 - Tables: APA style, "Table n." caption, notes for abbreviations and tests.
 - Full guide: `assistant/knowledge/reporting_standards.md`, test choice: `assistant/knowledge/test_selection.md`.
 
 ## Tools in this repo
 | Need | Use |
 |------|-----|
-| Full automated analysis (Excel/CSV → Word report + tables + SPSS syntax) | `python3 assistant/engine/auto_analysis.py <plan.json>` |
+| Full automated analysis (Excel/CSV → Word report + tables + ROC figure + SPSS syntax) | `python3 assistant/engine/auto_analysis.py <plan.json> [--lang en,ar]` |
+| Arabic RTL report | plan `"languages": ["en","ar"]` + `title_ar`, `var_labels`, `value_labels_ar` (text in `engine/i18n.py`) |
+| ROC / diagnostic accuracy | plan `"roc"` block (AUC DeLong CI, Youden cut-off, Se/Sp Wilson CI, PPV/NPV, LR, DeLong comparison) |
 | Sample size | `python3 assistant/engine/sample_size.py <type> ...` |
 | Reliability / kappa / PABAK / tests from Python | `assistant/engine/stats_core.py` |
 | Plan template | `assistant/templates/analysis_plan_template.json` |
 | Client folders | `assistant/clients/<client>/` (data is private — never commit real participant data) |
 | Tasks | `assistant/TASKS.md` |
 
-Dependencies: `pip install pandas scipy statsmodels openpyxl python-docx tabulate`.
+Dependencies: `pip install pandas scipy statsmodels openpyxl python-docx tabulate matplotlib`.
 
 ## Slash commands
-`/analyze` · `/interpret` · `/results` · `/spss` · `/sample-size` · `/methodology` · `/stat-review`
+`/analyze` · `/roc` · `/interpret` · `/results` · `/spss` · `/sample-size` · `/methodology` · `/stat-review`
 · `/decision-brief` · `/client` · `/today` · `/learn` — see `assistant/README.md`.
 
 ## Privacy

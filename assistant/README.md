@@ -11,6 +11,7 @@
 | الأمر | ماذا يفعل |
 |---|---|
 | `/analyze data.xlsx questionnaire.docx` | تحليل كامل آلي ← تقرير Word + جداول Excel + SPSS syntax |
+| `/roc` | تحليل منحنى ROC: AUC، نقطة القطع (Youden)، الحساسية والنوعية، مقارنة DeLong |
 | `/interpret` | تفسير مخرجات SPSS + فقرة جاهزة للنشر + تنبيهات الأخطاء |
 | `/results` | كتابة قسم النتائج للمجلات المحكمة |
 | `/spss` | توليد SPSS syntax جاهز للتشغيل |
@@ -24,19 +25,39 @@
 
 ## محرك التحليل الآلي
 ```bash
-pip install pandas scipy statsmodels openpyxl python-docx tabulate
-python3 assistant/engine/auto_analysis.py assistant/examples/kap_plan.json
+pip install pandas scipy statsmodels openpyxl python-docx tabulate matplotlib
+python3 assistant/engine/auto_analysis.py assistant/examples/kap_plan.json            # حسب اللغات في الخطة
+python3 assistant/engine/auto_analysis.py assistant/examples/kap_plan.json --lang ar  # عربي فقط
 ```
 **المدخلات:** ملف بيانات (Excel/CSV) + خطة `plan.json` (المتغيرات الديموغرافية، المحاور وبنودها، البنود العكسية، نقاط القطع، المتغير التابع للانحدار).
 
 **المخرجات** (في `assistant/output/`):
-- `*_report.docx` — تقرير بجداول APA وفقرات تفسير بالإنجليزية
+- `*_report.docx` / `*_report_ar.docx` — تقرير بجداول APA وفقرات تفسير بالإنجليزية و/أو بالعربية (RTL كامل: اتجاه الصفحة والجداول والفقرات)
+- `*_roc.png` — منحنيات ROC (300 dpi تقريباً)
 - `*_tables.xlsx` — كل جدول في ورقة
 - `*_syntax.sps` — SPSS syntax مطابق للتحليل
 - `*_scored_data.xlsx` — البيانات مع الدرجات والمستويات المحسوبة
 - `*_summary.md` — ملخص يقرؤه Claude لمراجعة النتائج
 
-**ما يحسبه تلقائياً:** التكرارات والنسب · Cronbach's α + α-if-deleted · درجات ومستويات KAP (Bloom) · اختيار الاختبار تلقائياً حسب التوزيع والتجانس (t / Welch / Mann-Whitney / ANOVA / Welch ANOVA / Kruskal-Wallis) مع حجم الأثر · Chi-square/Fisher مع Cramér's V وتنبيه الخلايا · Spearman · انحدار لوجستي (Crude OR + AOR، Nagelkerke، Hosmer-Lemeshow، EPV).
+**ما يحسبه تلقائياً:** التكرارات والنسب · Cronbach's α + α-if-deleted · درجات ومستويات KAP (Bloom) · اختيار الاختبار تلقائياً حسب التوزيع والتجانس (t / Welch / Mann-Whitney / ANOVA / Welch ANOVA / Kruskal-Wallis) مع حجم الأثر · Chi-square/Fisher مع Cramér's V وتنبيه الخلايا · Spearman · انحدار لوجستي (Crude OR + AOR، Nagelkerke، Hosmer-Lemeshow، EPV) · **تحليل ROC**: AUC مع فترة ثقة DeLong، نقطة القطع المثلى بمؤشر Youden، الحساسية والنوعية (فترات Wilson)، PPV/NPV، LR+/LR−، مقارنة DeLong بين المؤشرات، ومنحنى النموذج اللوجستي.
+
+### التقرير العربي
+أضف في الخطة:
+```json
+"languages": ["en", "ar"],
+"title_ar": "عنوان الدراسة بالعربية",
+"var_labels": {"gender": {"en": "Gender", "ar": "الجنس"}},
+"value_labels_ar": {"Bachelor": "بكالوريوس"}
+```
+النصوص العربية كلها في `engine/i18n.py` — عدّل الصياغة من هناك. الرموز الإحصائية والأرقام تبقى بالحروف اللاتينية (المعتاد في التقارير الخليجية).
+
+### ROC
+```json
+"roc": {"outcome": "Practice_adequate", "event": "Adequate",
+        "markers": ["Knowledge_score", "Attitude_score"],
+        "direction": {"Attitude_score": "higher"},
+        "include_logistic_model": true}
+```
 
 أدوات إضافية في `stats_core.py`: Cohen's Kappa + PABAK. و`sample_size.py`: نسبة واحدة (Cochran + FPC)، نسبتان، متوسطان، ارتباط، انحدار لوجستي (EPV).
 

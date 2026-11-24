@@ -10,4 +10,5 @@ Format (1 page, Arabic by default unless the input is English — ask nothing, p
 - ماذا يعني ذلك (تفسير مختصر بدون مصطلحات إحصائية معقدة).
 - التوصيات: جدول (الإجراء | المسؤول | الإطار الزمني | مؤشر المتابعة).
 - محددات البيانات بوضوح.
-Optionally suggest 2–3 Power BI visuals (type + fields) to track the indicators.
+If the findings come from raw data, run the engine with `--lang ar` first so every number in the
+brief is computed, not typed. Optionally suggest 2–3 Power BI visuals (type + fields) to track the indicators.
