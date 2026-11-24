@@ -55,7 +55,10 @@ every request in this repo.
 | Client folders | `assistant/clients/<client>/` (data is private — never commit real participant data) |
 | Tasks | `assistant/TASKS.md` |
 
-Dependencies: `pip install pandas scipy statsmodels openpyxl python-docx tabulate matplotlib`.
+Dependencies: `pip install pandas scipy statsmodels openpyxl python-docx tabulate matplotlib pytest`.
+
+Tests (run before committing engine or store changes):
+`python3 -m pytest assistant/tests -q` (engine) · `node tests/store_checkout.test.js` (store checkout, Playwright).
 
 ## Slash commands
 `/analyze` · `/roc` · `/interpret` · `/results` · `/spss` · `/sample-size` · `/methodology` · `/stat-review`

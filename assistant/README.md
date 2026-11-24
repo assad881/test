@@ -63,6 +63,11 @@ python3 assistant/engine/auto_analysis.py assistant/examples/kap_plan.json --lan
 
 مثال جاهز: `examples/sample_output/` (بيانات KAP تجريبية مُولَّدة، وليست حقيقية).
 
+## الاختبارات
+```bash
+python3 -m pytest assistant/tests -q     # 16 اختباراً للمحرك: قيم مفقودة، أنواع مختلطة، فئة مرجعية خاطئة، تقرير بلا جداول…
+```
+
 ## الخصوصية
 مجلد `clients/` و`output/` مستبعدان من git — لا تُرفع بيانات المرضى أو المشاركين أبداً.
 

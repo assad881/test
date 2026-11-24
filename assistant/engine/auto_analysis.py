@@ -35,7 +35,13 @@ def load_data(plan: dict, base: Path) -> pd.DataFrame:
         df = pd.read_csv(path)
     df.columns = [str(c).strip() for c in df.columns]
     for col, mapping in plan.get("recode", {}).items():
-        df[col] = df[col].map(lambda v: mapping.get(str(v), v))
+        if col not in df.columns:
+            raise KeyError(f"recode: column '{col}' not found in data")
+        m = {sc.norm_value(k): v for k, v in mapping.items()}
+        before = df[col]
+        df[col] = before.map(lambda v: m.get(sc.norm_value(v), v) if pd.notna(v) else v)
+        if before.notna().any() and not before.map(lambda v: sc.norm_value(v) in m).any():
+            print(f"⚠ recode '{col}': no value matched {list(mapping)}", file=sys.stderr)
     return df
 
 
@@ -116,6 +122,11 @@ class Report:
 
     def to_excel(self, path: Path):
         with pd.ExcelWriter(path, engine="openpyxl") as xw:
+            # always write a notes sheet first so the workbook is valid even with zero tables
+            notes = [b[1] for b in self.blocks if b[0] in ("h", "p")]
+            pd.DataFrame({self.title: notes}).to_excel(xw, sheet_name="Notes", index=False)
+            if self.L.rtl:
+                xw.sheets["Notes"].sheet_view.rightToLeft = True
             k = 0
             for b in self.blocks:
                 if b[0] == "t":
@@ -333,7 +344,7 @@ def section_item_analysis(rep: Report, df: pd.DataFrame, plan: dict, scales: lis
     for s in scales:
         rows = []
         for it in s["items"]:
-            vc = df[it].value_counts().sort_index()
+            vc = sc.sort_categories(df[it].value_counts())
             n = vc.sum()
             row = {"Item": L.v(it) if it in L.var_labels else plan.get("item_labels", {}).get(it, it)}
             for k, v in vc.items():
@@ -492,7 +503,7 @@ def section_roc(rep: Report, df: pd.DataFrame, plan: dict, alpha: float, L: Lang
         return
     rep.h(L("h_roc"))
     event = cfg.get("event", 1)
-    y = (df[cfg["outcome"]].astype(str) == str(event)).astype(float).where(df[cfg["outcome"]].notna())
+    y = sc.is_event(df[cfg["outcome"]], event)
     directions = {m: cfg.get("direction", {}).get(m, "higher") != "lower" for m in cfg["markers"]}
     scores = {m: df[m] for m in cfg["markers"]}
     if cfg.get("include_logistic_model") and logit is not None:

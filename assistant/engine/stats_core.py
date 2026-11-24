@@ -15,6 +15,42 @@ from scipy import stats
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 
+# ---------------------------------------------------------------- value matching
+def norm_value(v) -> str:
+    """Canonical text for a data value: 1, 1.0, '1', '1.0' → '1'; strips spaces.
+
+    Needed because a 0/1 column with any missing cell is read by pandas as float (1.0/NaN),
+    so comparing str(value) with str(event) silently fails.
+    """
+    if v is None or (isinstance(v, float) and np.isnan(v)):
+        return ""
+    if isinstance(v, (bool, np.bool_)):
+        return str(int(v))
+    if isinstance(v, (int, np.integer)):
+        return str(int(v))
+    if isinstance(v, (float, np.floating)):
+        return str(int(v)) if float(v).is_integer() else repr(float(v))
+    t = str(v).strip()
+    try:
+        f = float(t)
+        if f.is_integer() and t.lstrip("+-").replace(".", "", 1).isdigit():
+            return str(int(f))
+    except ValueError:
+        pass
+    return t
+
+
+def is_event(s: pd.Series, event) -> pd.Series:
+    """1.0 where s equals event (type-insensitive), 0.0 otherwise, NaN where s is missing."""
+    ev = norm_value(event)
+    return s.map(lambda v: norm_value(v) == ev).astype(float).where(s.notna())
+
+
+def _safe_exp(x) -> float:
+    with np.errstate(over="ignore"):
+        return float(np.exp(x))
+
+
 # ---------------------------------------------------------------- formatting
 def fmt_p(p: float | None) -> str:
     if p is None or (isinstance(p, float) and math.isnan(p)):
@@ -42,13 +78,25 @@ def median_iqr(x: pd.Series) -> str:
 
 
 # ---------------------------------------------------------------- descriptives
+def sort_categories(vc: pd.Series) -> pd.Series:
+    """Sort a value_counts result by category; numbers first (numerically), then text.
+    Works when a column mixes numbers and text (e.g. codes 1/2 plus 'other')."""
+    def key(v):
+        t = norm_value(v)
+        try:
+            return (0, float(t), "")
+        except ValueError:
+            return (1, 0.0, t)
+    return vc.loc[sorted(vc.index, key=key)]
+
+
 def frequency_table(df: pd.DataFrame, cols: list[str]) -> pd.DataFrame:
     rows = []
     for c in cols:
         s = df[c]
         n_valid = s.notna().sum()
         rows.append({"Variable": c, "Category": "", "n": "", "%": ""})
-        for cat, n in s.value_counts(dropna=True).sort_index().items():
+        for cat, n in sort_categories(s.value_counts(dropna=True)).items():
             rows.append({"Variable": "", "Category": str(cat), "n": int(n),
                          "%": f"{100 * n / n_valid:.1f}"})
         missing = s.isna().sum()
@@ -273,25 +321,37 @@ def logistic_regression(df: pd.DataFrame, outcome: str, predictors: list[str],
     import statsmodels.api as sm
 
     reference = reference or {}
+    missing_cols = [c for c in [outcome] + predictors if c not in df.columns]
+    if missing_cols:
+        return {"error": f"columns not found in data: {', '.join(missing_cols)}"}
     d = df[[outcome] + predictors].dropna().copy()
-    y = (d[outcome].astype(str) == str(event)).astype(int)
+    y = is_event(d[outcome], event).astype(int)
+    n_ev = int(y.sum())
+    if n_ev == 0 or n_ev == len(y):
+        found = ", ".join(sorted({norm_value(v) for v in d[outcome]}))
+        return {"error": f"outcome '{outcome}' has {n_ev} events (event = '{norm_value(event)}') "
+                         f"out of {len(y)}; values found: {found}"}
     X_parts, crude = [], []
     for p in predictors:
         col = d[p]
         if pd.api.types.is_numeric_dtype(col) and col.nunique() > 5:
             part = col.astype(float).to_frame(p)
         else:
-            cats = sorted(col.astype(str).unique())
-            ref = str(reference.get(p, cats[0]))
-            part = pd.get_dummies(col.astype(str), prefix=p, prefix_sep=": ").astype(float)
-            part = part.drop(columns=f"{p}: {ref}", errors="ignore")
+            txt = col.map(norm_value)
+            cats = sorted(txt.unique(), key=lambda t: (0, float(t), "") if _isnum(t) else (1, 0.0, t))
+            ref = norm_value(reference.get(p, cats[0]))
+            if ref not in cats:
+                return {"error": f"reference '{reference.get(p)}' for '{p}' is not in the data; "
+                                 f"available categories: {', '.join(cats)}"}
+            part = pd.get_dummies(txt, prefix=p, prefix_sep=": ").astype(float)
+            part = part.drop(columns=f"{p}: {ref}")
             part.columns = [f"{c} (ref: {ref})" for c in part.columns]
         X_parts.append(part)
         # crude (unadjusted) OR
         try:
             m0 = sm.Logit(y, sm.add_constant(part)).fit(disp=0)
             for c in part.columns:
-                crude.append((c, math.exp(m0.params[c]), m0.pvalues[c]))
+                crude.append((c, _safe_exp(m0.params[c]), m0.pvalues[c]))
         except Exception:
             pass
     X = sm.add_constant(pd.concat(X_parts, axis=1))
@@ -309,13 +369,13 @@ def logistic_regression(df: pd.DataFrame, outcome: str, predictors: list[str],
         co, cp = crude_map.get(c, (np.nan, np.nan))
         rows.append({"Predictor": c, "B": model.params[c], "SE": model.bse[c],
                      "Crude OR": co, "Crude p": cp,
-                     "AOR": math.exp(model.params[c]),
-                     "95% CI": f"{math.exp(ci.loc[c, 0]):.2f}–{math.exp(ci.loc[c, 1]):.2f}",
+                     "AOR": _safe_exp(model.params[c]),
+                     "95% CI": f"{_safe_exp(ci.loc[c, 0]):.2f}–{_safe_exp(ci.loc[c, 1]):.2f}",
                      "p": model.pvalues[c]})
     n = len(y)
     ll1, ll0 = model.llf, model.llnull
-    cox_snell = 1 - math.exp(2 * (ll0 - ll1) / n)
-    nagelkerke = cox_snell / (1 - math.exp(2 * ll0 / n))
+    cox_snell = 1 - _safe_exp(2 * (ll0 - ll1) / n)
+    nagelkerke = cox_snell / (1 - _safe_exp(2 * ll0 / n))
     pred = (model.predict(X) >= 0.5).astype(int)
     return {
         "outcome": outcome, "event": event, "n": n, "events": int(y.sum()),
@@ -328,6 +388,14 @@ def logistic_regression(df: pd.DataFrame, outcome: str, predictors: list[str],
         "epv": y.sum() / max(1, X.shape[1] - 1),
         "pred": pd.Series(model.predict(X).values, index=d.index),
     }
+
+
+def _isnum(t: str) -> bool:
+    try:
+        float(t)
+        return True
+    except ValueError:
+        return False
 
 
 def _hosmer_lemeshow(y, p, g=10) -> float:

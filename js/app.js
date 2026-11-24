@@ -99,16 +99,18 @@
     if (q <= 0) delete cart[id]; else cart[id] = q;
     save(); renderCart();
   }
+  const payMethod = () => ($("#checkout").elements.pay.value || "cod");
   function totals() {
     const items = Object.entries(cart)
       .map(([id, qty]) => ({ p: PRODUCTS.find((x) => x.id === +id), qty }))
       .filter((i) => i.p);
     const subtotal = items.reduce((s, i) => s + i.p.price * i.qty, 0);
     const shipping = subtotal === 0 || subtotal >= C.freeShippingFrom ? 0 : C.shippingFee;
-    return { items, subtotal, shipping };
+    const cod = items.length && payMethod() === "cod" ? C.codFee : 0;
+    return { items, subtotal, shipping, cod, total: subtotal + shipping + cod };
   }
   function renderCart() {
-    const { items, subtotal, shipping } = totals();
+    const { items, subtotal, shipping, cod, total } = totals();
     $("#cartCount").textContent = items.reduce((s, i) => s + i.qty, 0);
     $("#checkout").hidden = items.length === 0;
     if (!items.length) {
@@ -129,7 +131,8 @@
       ${left > 0 ? `<div class="hint">أضف ${money(left)} للحصول على شحن مجاني 🚚</div>` : `<div class="hint ok">🎉 حصلت على شحن مجاني</div>`}
       <div class="row"><span>المجموع</span><span>${money(subtotal)}</span></div>
       <div class="row"><span>الشحن</span><span>${shipping ? money(shipping) : "مجاني"}</span></div>
-      <div class="row total"><span>الإجمالي</span><span>${money(subtotal + shipping)}</span></div>`;
+      ${cod ? `<div class="row"><span>رسوم الدفع عند الاستلام</span><span>${money(cod)}</span></div>` : ""}
+      <div class="row total"><span>الإجمالي</span><span>${money(total)}</span></div>`;
   }
   $("#cartItems").addEventListener("click", (e) => {
     const b = e.target.closest("[data-q]");
@@ -139,11 +142,27 @@
   });
 
   // ---------- إتمام الطلب عبر واتساب ----------
+  // رقم واتساب غير مضبوط (فارغ أو القيمة التجريبية) → لا نستقبل طلبات حتى لا تضيع
+  const PLACEHOLDER_WHATSAPP = "96890000000";
+  const whatsappReady = /^\d{8,15}$/.test(String(C.whatsapp)) && String(C.whatsapp) !== PLACEHOLDER_WHATSAPP;
+  if (!whatsappReady) console.warn("STORE_CONFIG.whatsapp غير مضبوط — عدّله في js/products.js");
+
+  $("#checkout").addEventListener("change", (e) => { if (e.target.name === "pay") renderCart(); });
+
+  function orderSent(orderId) {
+    cart = {}; save(); renderCart(); $("#checkout").reset(); $("#waFallback").hidden = true;
+    close($("#cart"));
+    toast(`تم تجهيز طلبك #${orderId} — أكمل الإرسال في واتساب`);
+  }
+
   $("#checkout").addEventListener("submit", (e) => {
     e.preventDefault();
+    if (!whatsappReady) {
+      toast("⚠ استقبال الطلبات غير مفعّل حالياً — تواصل مع المتجر");
+      return;
+    }
     const f = Object.fromEntries(new FormData(e.target));
-    const { items, subtotal, shipping } = totals();
-    const cod = f.pay === "cod" ? C.codFee : 0;
+    const { items, subtotal, shipping, cod, total } = totals();
     const orderId = "R" + Date.now().toString().slice(-6);
     const lines = [
       `🛍️ طلب جديد #${orderId} — ${C.name}`,
@@ -153,17 +172,26 @@
       `المجموع: ${money(subtotal)}`,
       `الشحن: ${shipping ? money(shipping) : "مجاني"}`,
       cod ? `رسوم الدفع عند الاستلام: ${money(cod)}` : null,
-      `الإجمالي: ${money(subtotal + shipping + cod)}`,
+      `الإجمالي: ${money(total)}`,
       "",
       `الاسم: ${f.name}`,
       `الجوال: ${f.phone}`,
       `العنوان: ${f.country} - ${f.city} - ${f.address}`,
       `الدفع: ${f.pay === "cod" ? "عند الاستلام" : "تحويل بنكي"}`,
     ].filter((l) => l !== null);
-    window.open(`https://wa.me/${C.whatsapp}?text=${encodeURIComponent(lines.join("\n"))}`, "_blank");
-    cart = {}; save(); renderCart(); e.target.reset();
-    close($("#cart"));
-    toast(`تم تجهيز طلبك #${orderId} — أكمل الإرسال في واتساب`);
+    const url = `https://wa.me/${C.whatsapp}?text=${encodeURIComponent(lines.join("\n"))}`;
+    const win = window.open(url, "_blank");
+    if (win) {
+      win.opener = null;
+      orderSent(orderId);
+    } else {
+      // المتصفح حظر النافذة: نبقي السلة ونعرض رابطاً يضغطه العميل بنفسه
+      const a = $("#waFallback a");
+      a.href = url;
+      a.onclick = () => setTimeout(() => orderSent(orderId), 0);
+      $("#waFallback").hidden = false;
+      toast("المتصفح منع فتح واتساب — اضغط زر «افتح واتساب» لإرسال الطلب");
+    }
   });
 
   // ---------- النوافذ ----------
